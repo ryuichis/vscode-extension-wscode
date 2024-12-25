@@ -12,10 +12,12 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
-    "commands": [{
-      "command": "cerebras-inference.ask",
-      "title": "Ask Cerebras Inference"
-    }],
+    "commands": [
+      {
+        "command": "cerebras-inference.ask",
+        "title": "Ask Cerebras Inference"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "Cerebras Inference",
@@ -34,11 +36,14 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.96.0",
     "@types/mocha": "^10.0.10",
     "@types/node": "20.x",
-    "eslint": "^9.16.0",
+    "@types/vscode": "^1.96.0",
     "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "@vscode/test-electron": "^2.4.1",
+    "eslint": "^9.16.0"
+  },
+  "dependencies": {
+    "@cerebras/cerebras_cloud_sdk": "^1.15.0"
   }
 }
