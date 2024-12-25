@@ -54,41 +54,92 @@ function activate(context) {
     });
     context.subscriptions.push(disposable);
 
-    const openChatPanelCommand = vscode.commands.registerCommand('cerebras-inference.openChatPanel', function () {
-        const panel = vscode.window.createWebviewPanel(
-            'askCerebrasInference', // Identifies the type of the webview. Used internally
-            'Cerebras Inference', // Title of the panel displayed to the user
-            vscode.ViewColumn.Beside, // Editor column to show the new webview panel in
-            { enableScripts: true } // Webview options. More on these later.
-        );
-
-        // And set its HTML content
-        panel.webview.html = getWebviewContent();
-
-        // Handle messages from the webview
-        panel.webview.onDidReceiveMessage(
-            async message => {
-                switch (message.command) {
-                    case 'ask':
-                        const apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
-                        const client = new Cerebras({ apiKey: apiKey });
-                        const chatCompletion = await client.chat.completions.create({
-                            messages: [{ role: 'user', content: message.text }],
-                            model: 'llama-3.3-70b',
-                        });
-                        const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
-                        const time = chatCompletion.time_info?.completion_time || 0;
-                        const totalTokens = chatCompletion.usage?.completion_tokens || 1;
-                        const tokensPerSecond = time > 0 ? totalTokens / time : 0;
-                        panel.webview.postMessage({ text: code, tokensPerSecond:  Math.floor(tokensPerSecond) });
-                        return;
-                }
-            },
-            undefined,
-            context.subscriptions
-        );
+    const openChatPanelCommand = vscode.commands.registerCommand('cerebras-inference.openChatPanel', async function() {
+        openChatPanel(context);
     });
     context.subscriptions.push(openChatPanelCommand);
+
+    const cerebrasInferenceViewProvider = {
+        resolveWebviewView: function (webviewView) {
+            webviewView.webview.options = { enableScripts: true };
+            webviewView.webview.html = getWebviewContent();
+
+            webviewView.webview.onDidReceiveMessage(
+                async message => {
+                    switch (message.command) {
+                        case 'ask':
+                            const apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
+                            const client = new Cerebras({ apiKey: apiKey });
+                            const chatCompletion = await client.chat.completions.create({
+                                messages: [{ role: 'user', content: message.text }],
+                                model: 'llama-3.3-70b',
+                            });
+                            const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
+                            const time = chatCompletion.time_info?.completion_time || 0;
+                            const totalTokens = chatCompletion.usage?.completion_tokens || 1;
+                            const tokensPerSecond = time > 0 ? totalTokens / time : 0;
+                            webviewView.webview.postMessage({ text: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+                            return;
+                    }
+                },
+                undefined,
+                context.subscriptions
+            );
+        }
+    };
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider));
+}
+
+let panel;
+
+async function openChatPanel(context) {
+    if (panel) {
+        panel.reveal(vscode.ViewColumn.Beside);
+        return;
+    }
+
+    panel = vscode.window.createWebviewPanel(
+        'askCerebrasInference', // Identifies the type of the webview. Used internally
+        'Cerebras Inference', // Title of the panel displayed to the user
+        vscode.ViewColumn.Beside, // Editor column to show the new webview panel in
+        { enableScripts: true } // Webview options. More on these later.
+    );
+
+    // And set its HTML content
+    panel.webview.html = getWebviewContent();
+
+    // Handle messages from the webview
+    panel.webview.onDidReceiveMessage(
+        async message => {
+            switch (message.command) {
+                case 'ask':
+                    const apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
+                    const client = new Cerebras({ apiKey: apiKey });
+                    const chatCompletion = await client.chat.completions.create({
+                        messages: [{ role: 'user', content: message.text }],
+                        model: 'llama-3.3-70b',
+                    });
+                    const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
+                    const time = chatCompletion.time_info?.completion_time || 0;
+                    const totalTokens = chatCompletion.usage?.completion_tokens || 1;
+                    const tokensPerSecond = time > 0 ? totalTokens / time : 0;
+                    panel.webview.postMessage({ text: code, tokensPerSecond:  Math.floor(tokensPerSecond) });
+                    return;
+            }
+        },
+        undefined,
+        context.subscriptions
+    );
+
+    // Handle panel disposal
+    panel.onDidDispose(
+        () => {
+            panel = undefined;
+            console.log('Panel disposed');
+        },
+        null,
+        context.subscriptions
+    );
 }
 
 function getWebviewContent() {
@@ -122,7 +173,11 @@ function getWebviewContent() {
 }
 
 // This method is called when your extension is deactivated
-function deactivate() {}
+function deactivate() {
+    if (panel) {
+        panel.dispose();
+    }
+}
 
 module.exports = {
     activate,

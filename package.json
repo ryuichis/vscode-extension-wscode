@@ -32,6 +32,24 @@
           "description": "API Key for Cerebras Inference"
         }
       }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "cerebrasInference",
+          "title": "Cerebras Inference",
+          "icon": "resources/cerebras-logo-black-cropped.svg"
+        }
+      ]
+    },
+    "views": {
+      "cerebrasInference": [
+        {
+          "type": "webview",
+          "id": "cerebrasInferenceView",
+          "name": "Cerebras Inference"
+        }
+      ]
     }
   },
   "scripts": {
