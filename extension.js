@@ -1,9 +1,15 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
+const Cerebras = require('@cerebras/cerebras_cloud_sdk');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
+
+function extractCodeFromFence(text) {
+	const htmlMatch = text.match(/```html\n([\s\S]*?)\n```/);
+	return htmlMatch ? htmlMatch[1].trim() : text;
+}
 
 /**
  * @param {vscode.ExtensionContext} context
@@ -32,8 +38,19 @@ function activate(context) {
 
 		const userInput = await vscode.window.showInputBox({ prompt: "Ask anything..." }) || "";
 
+		const client = new Cerebras({ apiKey: apiKey });
+		const chatCompletion = await client.chat.completions.create({
+			messages: [{ role: 'user', content: userInput }],
+			// model: 'llama3.1-8b',
+			model: 'llama-3.3-70b',
+		});
+		const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
+		const time = chatCompletion.time_info?.completion_time || 0;
+		const totalTokens = chatCompletion.usage?.completion_tokens || 1;
+		const tokensPerSecond = time > 0 ? totalTokens / time : 0;
+
 		// Display a message box to the user
-		vscode.window.showInformationMessage(`Echo: ${userInput} and API Key: ${apiKey}`);
+		vscode.window.showInformationMessage(`Input: ${userInput}\nResponse: ${code}\nTokens per second: ${tokensPerSecond}`);
 	});
 
 	context.subscriptions.push(disposable);
