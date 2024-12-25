@@ -13,9 +13,20 @@
   "main": "./extension.js",
   "contributes": {
     "commands": [{
-      "command": "cerebras-inference.helloWorld",
-      "title": "Hello World"
-    }]
+      "command": "cerebras-inference.ask",
+      "title": "Ask Cerebras Inference"
+    }],
+    "configuration": {
+      "type": "object",
+      "title": "Cerebras Inference",
+      "properties": {
+        "cerebras-inference.apiKey": {
+          "type": "string",
+          "default": "",
+          "description": "API Key for Cerebras Inference"
+        }
+      }
+    }
   },
   "scripts": {
     "lint": "eslint .",

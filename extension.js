@@ -17,11 +17,23 @@ function activate(context) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	const disposable = vscode.commands.registerCommand('cerebras-inference.helloWorld', function () {
-		// The code you place here will be executed every time your command is executed
+	const disposable = vscode.commands.registerCommand('cerebras-inference.ask', async function () {
+		var apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
+		if (!apiKey) {
+			apiKey = await vscode.window.showInputBox({ prompt: "Enter your API Key for Cerebras Inference" }) || "";
+			if (apiKey) {
+				await vscode.workspace.getConfiguration('cerebras-inference').update('apiKey', apiKey, vscode.ConfigurationTarget.Global);
+				vscode.window.showInformationMessage('API Key has been set.');
+			} else {
+				vscode.window.showErrorMessage('API Key not set.');
+				return;
+			}
+		}
+
+		const userInput = await vscode.window.showInputBox({ prompt: "Ask anything..." }) || "";
 
 		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Cerebras Inference!');
+		vscode.window.showInformationMessage(`Echo: ${userInput} and API Key: ${apiKey}`);
 	});
 
 	context.subscriptions.push(disposable);
