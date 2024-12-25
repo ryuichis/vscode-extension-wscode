@@ -16,10 +16,6 @@
       {
         "command": "cerebras-inference.ask",
         "title": "Ask Cerebras Inference"
-      },
-      {
-        "command": "cerebras-inference.openChatPanel",
-        "title": "Open Cerebras Inference Chat Panel"
       }
     ],
     "configuration": {
