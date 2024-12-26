@@ -62,6 +62,7 @@
     "eslint": "^9.16.0"
   },
   "dependencies": {
-    "@cerebras/cerebras_cloud_sdk": "^1.15.0"
+    "@cerebras/cerebras_cloud_sdk": "^1.15.0",
+    "marked": "^15.0.4"
   }
 }

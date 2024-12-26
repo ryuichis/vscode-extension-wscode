@@ -2,13 +2,18 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 const Cerebras = require('@cerebras/cerebras_cloud_sdk');
+const { marked } = require('marked');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 
 function extractCodeFromFence(text) {
     const htmlMatch = text.match(/```html\n([\s\S]*?)\n```/);
-    return htmlMatch ? htmlMatch[1].trim() : text;
+    const md = htmlMatch ? htmlMatch[1].trim() : text;
+    console.log(md);
+    const html = marked(md);
+    console.log(html);
+    return html;
 }
 
 /**
@@ -77,7 +82,6 @@ function activate(context) {
                                 model: 'llama-3.3-70b',
                             });
                             const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
-                            console.log(code);
                             const time = chatCompletion.time_info?.completion_time || 0;
                             const totalTokens = chatCompletion.usage?.completion_tokens || 1;
                             const tokensPerSecond = time > 0 ? totalTokens / time : 0;
@@ -97,7 +101,6 @@ function getWebviewContent(context, webview) {
 
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.js'));
     const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.css'));
-    const markedUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'marked.min.js'));
     const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
     const lCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cb-main.png'));
     const sCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cerebras-logo-black-cropped.svg'));
@@ -108,7 +111,6 @@ function getWebviewContent(context, webview) {
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link href="${stylesMainUri}" rel="stylesheet">
-            <script src="${markedUri}"></script>
             <script src="${tailwindUri}"></script>
         </head>
         <body class="overflow-hidden">

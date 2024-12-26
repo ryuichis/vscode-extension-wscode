@@ -44,7 +44,7 @@
                                 </p>
                             </div>
                         </div>
-                        <div>${marked.parse(message.value)}</div>
+                        <div class="response-message">${message.value}</div>
                     </div>`;
 
                 list.scrollTo(0, list.scrollHeight);

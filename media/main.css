@@ -141,3 +141,23 @@ textarea::placeholder {
         border-width: 10px;
     }
 }
+
+.response-message {
+    all: initial;
+    color: var(--vscode-foreground);
+    font-size: var(--vscode-font-size);
+    font-weight: var(--vscode-font-weight);
+    font-family: var(--vscode-font-family);
+    background-color: var(--vscode-editor-background);
+}
+
+.response-message > * {
+    all: revert;
+}
+
+code {
+    display: block; /* Ensure the code block takes up the full width */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    white-space: nowrap; /* Prevent text from wrapping */
+    border-radius: 0.25rem; /* Optional: Add rounded corners */
+}
