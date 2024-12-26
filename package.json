@@ -22,7 +22,11 @@
     "commands": [
       {
         "command": "cerebras-inference.ask",
-        "title": "Ask Cerebras Inference"
+        "title": "Cerebras Inference: Ask"
+      },
+      {
+        "command": "cerebras-inference.setupApiKey",
+        "title": "Cerebras Inference: Setup API Key"
       }
     ],
     "configuration": {
