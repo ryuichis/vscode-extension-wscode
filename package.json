@@ -2,7 +2,7 @@
   "name": "cerebras-inference",
   "displayName": "Cerebras Inference",
   "description": "This is instant AI",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "cerebras",
   "repository": "https://github.com/ryuichis/vscode-extension-cerebras-inference",
   "engines": {
@@ -22,7 +22,11 @@
     "commands": [
       {
         "command": "cerebras-inference.ask",
-        "title": "Ask Cerebras Inference"
+        "title": "Cerebras Inference: Ask"
+      },
+      {
+        "command": "cerebras-inference.setupApiKey",
+        "title": "Cerebras Inference: Setup API Key"
       }
     ],
     "configuration": {

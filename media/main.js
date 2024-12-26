@@ -61,7 +61,7 @@
 
         if (input.value?.length > 0) {
             vscode.postMessage({
-                command: 'ask',
+                command: 'cerebras-inference-ask',
                 text: input.value,
             });
 
