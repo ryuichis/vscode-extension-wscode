@@ -56,13 +56,17 @@ function activate(context) {
 
     const cerebrasInferenceViewProvider = {
         resolveWebviewView: function (webviewView) {
-            webviewView.webview.options = { enableScripts: true };
-            webviewView.webview.html = getWebviewContent();
+            webviewView.webview.options = {
+                enableScripts: true,
+                localResourceRoots: [vscode.Uri.joinPath(context.extensionUri, 'media')]
+            };
+            webviewView.webview.html = getWebviewContent(context, webviewView.webview);
 
             webviewView.webview.onDidReceiveMessage(
                 async message => {
                     switch (message.command) {
                         case 'ask':
+                            webviewView.webview.postMessage({ type: 'addQuestion', value: message.text });
                             const apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
                             const client = new Cerebras({ apiKey: apiKey });
                             const chatCompletion = await client.chat.completions.create({
@@ -73,7 +77,7 @@ function activate(context) {
                             const time = chatCompletion.time_info?.completion_time || 0;
                             const totalTokens = chatCompletion.usage?.completion_tokens || 1;
                             const tokensPerSecond = time > 0 ? totalTokens / time : 0;
-                            webviewView.webview.postMessage({ text: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+                            webviewView.webview.postMessage({ type: 'addResponse', value: code, tokensPerSecond: Math.floor(tokensPerSecond) });
                             return;
                     }
                 },
@@ -85,34 +89,44 @@ function activate(context) {
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider));
 }
 
-function getWebviewContent() {
-    return `<!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Ask Cerebras Inference</title>
-    </head>
-    <body>
-        <h1>Ask Cerebras Inference</h1>
-        <input type="text" id="userInput" placeholder="Ask anything..." />
-        <button onclick="sendMessage()">Send</button>
-        <div id="response"></div>
-        <div id="responseTPS"></div>
-        <script>
-            const vscode = acquireVsCodeApi();
-            function sendMessage() {
-                const userInput = document.getElementById('userInput').value;
-                vscode.postMessage({ command: 'ask', text: userInput });
-            }
-            window.addEventListener('message', event => {
-                const message = event.data;
-                document.getElementById('response').innerText = message.text;
-                document.getElementById('responseTPS').innerText = message.tokensPerSecond + ' T/s';
-            });
-        </script>
-    </body>
-    </html>`;
+function getWebviewContent(context, webview) {
+
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.js'));
+    const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.css'));
+    const markedUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'marked.min.js'));
+    const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
+
+    const html = `<!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="${stylesMainUri}" rel="stylesheet">
+            <script src="${markedUri}"></script>
+            <script src="${tailwindUri}"></script>
+        </head>
+        <body class="overflow-hidden">
+            <div class="flex flex-col h-screen">
+                <div class="flex-1 overflow-y-auto" id="message-list"></div>
+                <div id="in-progress" class="p-4 flex items-center hidden">
+                    <div style="text-align: center;">
+                        <div>Thinking...</div>
+                        <div class="loader"></div>
+                    </div>
+                </div>
+                <div class="relative shrink-0 leading-none">
+                    <textarea data-testid="chat-textarea" placeholder="Ask anything..." id="question-input" class="text-lg w-full inline-flex px-4 focus:px-[15px] bg-neutral border-neutral-15 focus:outline-none focus:ring-0 text-neutral-95 hover:bg-interactive-10 hover:border-neutral-15 active:border-interactive-50 active:rounded-lg focus:rounded-lg focus:border-interactive-50 placeholder:text-neutral-45 rounded-lg min-h-11 resize-none py-[11px] focus:py-[10px] border focus:border-2 active:border-2 shadow h-[84px] pr-9 focus:pr-9" style="height: 84px;"></textarea>
+                    <button style="background: transparent; color: var(--vscode-editor-foreground);" id="ask-button" class="border-none shadow-none bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent focus:active:bg-transparent hover:text-neutral-95 text-neutral-45 absolute right-[0px] top-[0px] p-5 focus:px-5 active:px-5 focus:active:px-5"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
+                </div>
+                <div class="p-4 flex items-center">
+                    <button style="background: var(--vscode-button-background); color: var(--vscode-button-foreground);" id="clear-button" class="p-2 ml-3">Clear</button>
+                </div>
+            </div>
+            <script src="${scriptUri}"></script>
+        </body>
+        </html>`;
+
+    return html;
 }
 
 // This method is called when your extension is deactivated
