@@ -59,6 +59,7 @@ button {
 button:hover {
     cursor: pointer;
     background: var(--vscode-button-hoverBackground);
+    color: var(--vscode-button-secondaryForeground);
 }
 
 button:focus {
