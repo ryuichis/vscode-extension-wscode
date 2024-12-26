@@ -1,6 +1,8 @@
-# cerebras-inference README
+![Cerebras Inference](resources/cb-main.png)
 
-This is the README for your extension "cerebras-inference". After writing up a brief description, we recommend including the following sections.
+# Cerebras Inference Extension for Visual Studio Code
+
+This Visual Studio Code extension allows you to chat with Cerebras Inference right within the editor.
 
 ## Features
 
