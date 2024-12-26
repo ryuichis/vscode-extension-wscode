@@ -1,13 +1,19 @@
 {
   "name": "cerebras-inference",
   "displayName": "Cerebras Inference",
-  "description": "",
+  "description": "This is instant AI",
   "version": "0.0.1",
+  "publisher": "cerebras",
+  "repository": "https://github.com/ryuichis/vscode-extension-cerebras-inference",
   "engines": {
     "vscode": "^1.96.0"
   },
   "categories": [
-    "Other"
+    "Cerebras",
+    "Inference",
+    "AI",
+    "Machine Learning",
+    "Chat"
   ],
   "activationEvents": [],
   "main": "./extension.js",
