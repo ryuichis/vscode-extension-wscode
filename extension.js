@@ -122,7 +122,7 @@ function getWebviewContent(context, webview) {
             <script src="${tailwindUri}"></script>
         </head>
         <body class="overflow-hidden">
-            <div class="mx-auto flex w-full items-center justify-between">
+            <div class="mx-auto flex w-full items-center justify-between mb-6">
                 <div class="flex items-center gap-x-2">
                     <div class="shrink-0" data-testid="header-logo-xs">
                         <img alt="Cerebras logo" fetchpriority="high" width="28" height="36" decoding="async" data-nimg="1" class="sm:hidden" src="${sCerebrasLogoUri}" style="color: transparent;">
@@ -147,7 +147,7 @@ function getWebviewContent(context, webview) {
                         <div class="loader"></div>
                     </div>
                 </div>
-                <div class="relative shrink-0 leading-none mb-16">
+                <div class="relative shrink-0 leading-none mb-20">
                     <textarea data-testid="chat-textarea" placeholder="Ask anything..." id="question-input" class="text-lg w-full inline-flex px-4 focus:px-[15px] bg-neutral border-neutral-15 focus:outline-none focus:ring-0 text-neutral-95 hover:bg-interactive-10 hover:border-neutral-15 active:border-interactive-50 active:rounded-lg focus:rounded-lg focus:border-interactive-50 placeholder:text-neutral-45 rounded-lg min-h-11 resize-none py-[11px] focus:py-[10px] border focus:border-2 active:border-2 shadow h-[84px] pr-9 focus:pr-9" style="height: 84px;"></textarea>
                     <button style="background: transparent; color: var(--vscode-editor-foreground);" id="ask-button" class="border-none shadow-none bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent focus:active:bg-transparent hover:text-neutral-95 text-neutral-45 absolute right-[0px] top-[0px] p-5 focus:px-5 active:px-5 focus:active:px-5"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
                 </div>
