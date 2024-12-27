@@ -49,6 +49,9 @@
 
                 list.scrollTo(0, list.scrollHeight);
                 break;
+            case "handleError":
+                document.getElementById("in-progress")?.classList?.add("hidden");
+                break;
             default:
                 break;
         }

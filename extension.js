@@ -82,15 +82,26 @@ async function postQuestion(prompt) {
 
     cerebrasInferenceWebview.postMessage({ type: 'addQuestion', value: prompt });
     const client = new Cerebras({ apiKey: apiKey });
-    const chatCompletion = await client.chat.completions.create({
-        messages: [{ role: 'user', content: prompt }],
-        model: selectedModel,
-    });
-    const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
-    const time = chatCompletion.time_info?.completion_time || 0;
-    const totalTokens = chatCompletion.usage?.completion_tokens || 1;
-    const tokensPerSecond = time > 0 ? totalTokens / time : 0;
-    cerebrasInferenceWebview.postMessage({ type: 'addResponse', value: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+    const chatCompletion = await client.chat.completions
+        .create({
+            messages: [{ role: 'user', content: prompt }],
+            model: selectedModel,
+        })
+        .catch(async (err) => {
+            cerebrasInferenceWebview.postMessage({ type: 'handleError' });
+            if (err instanceof Cerebras.APIError) {
+                vscode.window.showErrorMessage(`${err.name}: ${err.message}`);
+            } else {
+                throw err;
+            }
+        });
+    if (chatCompletion) {
+        const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
+        const time = chatCompletion.time_info?.completion_time || 0;
+        const totalTokens = chatCompletion.usage?.completion_tokens || 1;
+        const tokensPerSecond = time > 0 ? totalTokens / time : 0;
+        cerebrasInferenceWebview.postMessage({ type: 'addResponse', value: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+    }
 }
 
 async function setupApiKey() {
