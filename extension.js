@@ -186,14 +186,14 @@ function getWebviewContent(context, webview) {
                         <div class="loader"></div>
                     </div>
                 </div>
-                <div class="relative shrink-0 leading-none mb-20">
+                <div class="relative shrink-0 leading-none mb-[114px] mt-6">
                     <textarea data-testid="chat-textarea" placeholder="Ask anything..." id="question-input" class="text-lg w-full inline-flex px-4 focus:px-[15px] bg-neutral border-neutral-15 focus:outline-none focus:ring-0 text-neutral-95 hover:bg-interactive-10 hover:border-neutral-15 active:border-interactive-50 active:rounded-lg focus:rounded-lg focus:border-interactive-50 placeholder:text-neutral-45 rounded-lg min-h-11 resize-none py-[11px] focus:py-[10px] border focus:border-2 active:border-2 shadow h-[84px] pr-9 focus:pr-9" style="height: 84px;"></textarea>
-                    <div class="absolute right-[0px] bottom-[0px] items-center gap-2">
-                        <select id="model-selection-dropdown" class="h-9 text-md-b px-3 py-2 rounded-md shadow outline-none focus:ring-0 bg-neutral text-neutral-95 border border-neutral-15 hover:bg-interactive-10 focus:border-2 focus:border-interactive-50 active:border-neutral-50 active:shadow-none focus:active:bg-neutral focus:active:border-neutral-50">
+                    <div class="absolute right-[0px] bottom-[-42px] flex items-center gap-2">
+                        <select id="model-selection-dropdown" class="h-9 text-md-b px-3 py-0 rounded-md shadow outline-none items-center focus:ring-0 bg-neutral text-neutral-95 border border-neutral-15 hover:bg-interactive-10 focus:border-2 focus:border-interactive-50 active:border-neutral-50 active:shadow-none focus:active:bg-neutral focus:active:border-neutral-50">
                             <option value="llama3.1-8b">Llama 3.1 8B</option>
                             <option value="llama-3.3-70b" selected>Llama 3.3 70B</option>
                         </select>
-                        <button style="background: transparent; color: var(--vscode-editor-foreground);" id="ask-button" class="border-none shadow-none bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent focus:active:bg-transparent hover:text-neutral-95 text-neutral-45 p-5 focus:px-5 active:px-5 focus:active:px-5"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
+                        <button id="ask-button" class="h-9 text-md-b px-3 py-0 rounded-md shadow outline-none items-center focus:ring-0 bg-neutral text-neutral-95 border border-neutral-15 hover:bg-interactive-10 focus:border-2 focus:border-interactive-50 active:border-neutral-50 active:shadow-none focus:active:bg-neutral focus:active:border-neutral-50 focus:px-[15px]"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
                     </div>
                 </div>
             </div>
