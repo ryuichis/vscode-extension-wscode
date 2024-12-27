@@ -80,6 +80,12 @@
             submitHandler(e);
         }
     });
+    document.getElementById('model-selection-dropdown').addEventListener('change', (event) => {
+        vscode.postMessage({
+            command: 'cerebras-inference-model-selection',
+            value: event.target.value
+        });
+    });
 
 
     // Function to highlight all code blocks under a specific element
