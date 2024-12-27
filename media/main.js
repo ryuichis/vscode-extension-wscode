@@ -49,6 +49,9 @@
 
                 list.scrollTo(0, list.scrollHeight);
                 break;
+            case "handleError":
+                document.getElementById("in-progress")?.classList?.add("hidden");
+                break;
             default:
                 break;
         }
@@ -80,4 +83,42 @@
             submitHandler(e);
         }
     });
+    document.getElementById('model-selection-dropdown').addEventListener('change', (event) => {
+        vscode.postMessage({
+            command: 'cerebras-inference-model-selection',
+            value: event.target.value
+        });
+    });
+
+
+    // Function to highlight all code blocks under a specific element
+    function highlightCodeBlocks(element) {
+        Prism.highlightAllUnder(element);
+    }
+
+    // Observe changes in the DOM to detect new <pre><code> elements
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === Node.ELEMENT_NODE) {
+                    if (node.matches('pre code')) {
+                        Prism.highlightElement(node);
+                    } else if (node.querySelectorAll) {
+                        node.querySelectorAll('pre code').forEach((codeBlock) => {
+                            Prism.highlightElement(codeBlock);
+                        });
+                    }
+                }
+            });
+        });
+    });
+
+    // Start observing the document body for changes
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+
+    // Initial highlighting of existing code blocks
+    highlightCodeBlocks(document.body);
 })();

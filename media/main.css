@@ -92,6 +92,16 @@ textarea::placeholder {
     color: var(--vscode-input-placeholderForeground);
 }
 
+select {
+    border: none;
+    padding: var(--input-padding-vertical) var(--input-padding-horizontal);
+    text-align: center;
+    outline: 1px solid transparent;
+    outline-offset: 2px !important;
+    color: var(--vscode-editor-foreground);
+    background: var(--vscode-editor-background);
+}
+
 .loader {
     width: 70px;
     height: 35px;
@@ -155,7 +165,7 @@ textarea::placeholder {
     all: revert;
 }
 
-code {
+pre code {
     display: block; /* Ensure the code block takes up the full width */
     overflow-x: auto; /* Enable horizontal scrolling */
     white-space: nowrap; /* Prevent text from wrapping */

@@ -3,6 +3,7 @@ const Cerebras = require('@cerebras/cerebras_cloud_sdk');
 const { marked } = require('marked');
 
 let cerebrasInferenceWebview;
+let selectedModel = 'llama-3.3-70b';
 
 function extractCodeFromFence(text) {
     const htmlMatch = text.match(/```html\n([\s\S]*?)\n```/);
@@ -53,6 +54,10 @@ function activate(context) {
                     switch (message.command) {
                         case 'cerebras-inference-ask':
                             postQuestion(message.text);
+                            break;
+                        case 'cerebras-inference-model-selection':
+                            selectedModel = message.value;
+                            break;
                     }
                 },
                 undefined,
@@ -61,6 +66,22 @@ function activate(context) {
         }
     };
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider));
+}
+
+async function getEditorContent() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        return null;
+    }
+
+    const document = editor.document;
+    const selection = editor.selection;
+
+    if (!selection.isEmpty) {
+        return document.getText(selection);
+    } else {
+        return document.getText();
+    }
 }
 
 async function postQuestion(prompt) {
@@ -75,17 +96,35 @@ async function postQuestion(prompt) {
         return;
     }
 
+    let messages = [];
+    const editorContent = await getEditorContent();
+    if (editorContent) {
+        messages.push({ role: 'system', content: `You are an advanced AI coding assistant. Current code for context:\n\`\`\`${editorContent}\`\`\`` });
+    }
+    messages.push({ role: 'user', content: prompt });
+
     cerebrasInferenceWebview.postMessage({ type: 'addQuestion', value: prompt });
     const client = new Cerebras({ apiKey: apiKey });
-    const chatCompletion = await client.chat.completions.create({
-        messages: [{ role: 'user', content: prompt }],
-        model: 'llama-3.3-70b',
-    });
-    const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
-    const time = chatCompletion.time_info?.completion_time || 0;
-    const totalTokens = chatCompletion.usage?.completion_tokens || 1;
-    const tokensPerSecond = time > 0 ? totalTokens / time : 0;
-    cerebrasInferenceWebview.postMessage({ type: 'addResponse', value: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+    const chatCompletion = await client.chat.completions
+        .create({
+            messages: messages,
+            model: selectedModel,
+        })
+        .catch(async (err) => {
+            cerebrasInferenceWebview.postMessage({ type: 'handleError' });
+            if (err instanceof Cerebras.APIError) {
+                vscode.window.showErrorMessage(`${err.name}: ${err.message}`);
+            } else {
+                throw err;
+            }
+        });
+    if (chatCompletion) {
+        const code = extractCodeFromFence(chatCompletion.choices[0].message.content);
+        const time = chatCompletion.time_info?.completion_time || 0;
+        const totalTokens = chatCompletion.usage?.completion_tokens || 1;
+        const tokensPerSecond = time > 0 ? totalTokens / time : 0;
+        cerebrasInferenceWebview.postMessage({ type: 'addResponse', value: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+    }
 }
 
 async function setupApiKey() {
@@ -106,6 +145,8 @@ function getWebviewContent(context, webview) {
 
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.js'));
     const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.css'));
+    const prismJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.js'));
+    const prismCssUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.css'));
     const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
     const lCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cb-main.png'));
     const sCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cerebras-logo-black-cropped.svg'));
@@ -115,11 +156,12 @@ function getWebviewContent(context, webview) {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="${prismCssUri}" rel="stylesheet">
             <link href="${stylesMainUri}" rel="stylesheet">
             <script src="${tailwindUri}"></script>
         </head>
         <body class="overflow-hidden">
-            <div class="mx-auto flex w-full items-center justify-between">
+            <div class="mx-auto flex w-full items-center justify-between mb-6">
                 <div class="flex items-center gap-x-2">
                     <div class="shrink-0" data-testid="header-logo-xs">
                         <img alt="Cerebras logo" fetchpriority="high" width="28" height="36" decoding="async" data-nimg="1" class="sm:hidden" src="${sCerebrasLogoUri}" style="color: transparent;">
@@ -144,11 +186,18 @@ function getWebviewContent(context, webview) {
                         <div class="loader"></div>
                     </div>
                 </div>
-                <div class="relative shrink-0 leading-none mb-16">
+                <div class="relative shrink-0 leading-none mb-[114px] mt-6">
                     <textarea data-testid="chat-textarea" placeholder="Ask anything..." id="question-input" class="text-lg w-full inline-flex px-4 focus:px-[15px] bg-neutral border-neutral-15 focus:outline-none focus:ring-0 text-neutral-95 hover:bg-interactive-10 hover:border-neutral-15 active:border-interactive-50 active:rounded-lg focus:rounded-lg focus:border-interactive-50 placeholder:text-neutral-45 rounded-lg min-h-11 resize-none py-[11px] focus:py-[10px] border focus:border-2 active:border-2 shadow h-[84px] pr-9 focus:pr-9" style="height: 84px;"></textarea>
-                    <button style="background: transparent; color: var(--vscode-editor-foreground);" id="ask-button" class="border-none shadow-none bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent focus:active:bg-transparent hover:text-neutral-95 text-neutral-45 absolute right-[0px] top-[0px] p-5 focus:px-5 active:px-5 focus:active:px-5"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
+                    <div class="absolute right-[0px] bottom-[-42px] flex items-center gap-2">
+                        <select id="model-selection-dropdown" class="h-9 text-md-b px-3 py-0 rounded-md shadow outline-none items-center focus:ring-0 bg-neutral text-neutral-95 border border-neutral-15 hover:bg-interactive-10 focus:border-2 focus:border-interactive-50 active:border-neutral-50 active:shadow-none focus:active:bg-neutral focus:active:border-neutral-50">
+                            <option value="llama3.1-8b">Llama 3.1 8B</option>
+                            <option value="llama-3.3-70b" selected>Llama 3.3 70B</option>
+                        </select>
+                        <button id="ask-button" class="h-9 text-md-b px-3 py-0 rounded-md shadow outline-none items-center focus:ring-0 bg-neutral text-neutral-95 border border-neutral-15 hover:bg-interactive-10 focus:border-2 focus:border-interactive-50 active:border-neutral-50 active:shadow-none focus:active:bg-neutral focus:active:border-neutral-50 focus:px-[15px]"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
+                    </div>
                 </div>
             </div>
+            <script src="${prismJsUri}"></script>
             <script src="${scriptUri}"></script>
         </body>
         </html>`;
