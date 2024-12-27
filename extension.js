@@ -68,6 +68,22 @@ function activate(context) {
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider));
 }
 
+async function getEditorContent() {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+        return null;
+    }
+
+    const document = editor.document;
+    const selection = editor.selection;
+
+    if (!selection.isEmpty) {
+        return document.getText(selection);
+    } else {
+        return document.getText();
+    }
+}
+
 async function postQuestion(prompt) {
     if (!cerebrasInferenceWebview) {
         vscode.window.showErrorMessage('Could not find the Cerebras Inference webview.');
@@ -80,11 +96,18 @@ async function postQuestion(prompt) {
         return;
     }
 
+    let messages = [];
+    const editorContent = await getEditorContent();
+    if (editorContent) {
+        messages.push({ role: 'system', content: `You are an advanced AI coding assistant. Current code for context:\n\`\`\`${editorContent}\`\`\`` });
+    }
+    messages.push({ role: 'user', content: prompt });
+
     cerebrasInferenceWebview.postMessage({ type: 'addQuestion', value: prompt });
     const client = new Cerebras({ apiKey: apiKey });
     const chatCompletion = await client.chat.completions
         .create({
-            messages: [{ role: 'user', content: prompt }],
+            messages: messages,
             model: selectedModel,
         })
         .catch(async (err) => {
