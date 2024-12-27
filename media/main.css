@@ -155,7 +155,7 @@ textarea::placeholder {
     all: revert;
 }
 
-code {
+pre code {
     display: block; /* Ensure the code block takes up the full width */
     overflow-x: auto; /* Enable horizontal scrolling */
     white-space: nowrap; /* Prevent text from wrapping */
