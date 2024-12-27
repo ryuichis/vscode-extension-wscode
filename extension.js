@@ -106,6 +106,8 @@ function getWebviewContent(context, webview) {
 
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.js'));
     const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.css'));
+    const prismJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.js'));
+    const prismCssUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.css'));
     const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
     const lCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cb-main.png'));
     const sCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cerebras-logo-black-cropped.svg'));
@@ -115,6 +117,7 @@ function getWebviewContent(context, webview) {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link href="${prismCssUri}" rel="stylesheet">
             <link href="${stylesMainUri}" rel="stylesheet">
             <script src="${tailwindUri}"></script>
         </head>
@@ -149,6 +152,7 @@ function getWebviewContent(context, webview) {
                     <button style="background: transparent; color: var(--vscode-editor-foreground);" id="ask-button" class="border-none shadow-none bg-transparent hover:bg-transparent focus:bg-transparent active:bg-transparent focus:active:bg-transparent hover:text-neutral-95 text-neutral-45 absolute right-[0px] top-[0px] p-5 focus:px-5 active:px-5 focus:active:px-5"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
                 </div>
             </div>
+            <script src="${prismJsUri}"></script>
             <script src="${scriptUri}"></script>
         </body>
         </html>`;
