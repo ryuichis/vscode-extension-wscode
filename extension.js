@@ -5,6 +5,8 @@ const { marked } = require('marked');
 let cerebrasInferenceWebview;
 let selectedModel = 'llama-3.3-70b';
 
+const historyStorageKey = 'cerebras-inference-history-storage';
+
 function activate(context) {
     const askCommandProvider = vscode.commands.registerCommand('cerebras-inference.ask', async function () {
         var apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
@@ -48,11 +50,20 @@ function activate(context) {
                         case 'cerebras-inference-model-selection':
                             selectedModel = message.value;
                             break;
+                        case 'cerebras-inference-save-history':
+                            context.workspaceState.update(historyStorageKey, message.html);
+                            break;
                     }
                 },
                 undefined,
                 context.subscriptions
             );
+
+            webviewView.onDidChangeVisibility(() => {
+                if (webviewView.visible) {
+                    webviewView.webview.html = getWebviewContent(context, webviewView.webview);
+                }
+            });
         }
     };
     const cerebrasInferenceWebviewProvider =
@@ -152,6 +163,7 @@ function getWebviewContent(context, webview) {
     const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
     const lCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cb-main.png'));
     const sCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cerebras-logo-black-cropped.svg'));
+    const historyHtml = context.workspaceState.get(historyStorageKey) || "";
 
     const html = `<!DOCTYPE html>
         <html lang="en">
@@ -181,7 +193,7 @@ function getWebviewContent(context, webview) {
                 </div>
             </div>
             <div class="flex flex-col h-screen">
-                <div class="flex-1 overflow-y-auto" id="message-list"></div>
+                <div class="flex-1 overflow-y-auto" id="message-list">${historyHtml}</div>
                 <div id="in-progress" class="p-4 flex items-center hidden">
                     <div style="text-align: center;">
                         <div>Brainstorming...</div>

@@ -1,6 +1,8 @@
 (function () {
-    const vscode = acquireVsCodeApi();
     const list = document.getElementById("message-list");
+    list.scrollTo(0, list.scrollHeight);
+
+    const vscode = acquireVsCodeApi();
 
     window.addEventListener("message", (event) => {
         const message = event.data;
@@ -22,6 +24,7 @@
 
                 document.getElementById("in-progress")?.classList?.remove("hidden");
                 list.scrollTo(0, list.scrollHeight);
+                vscode.postMessage({ command: "cerebras-inference-save-history", html: list.innerHTML });
                 break;
             case "addResponse":
                 document.getElementById("in-progress")?.classList?.add("hidden");
@@ -46,6 +49,7 @@
                     </div>`;
 
                 list.scrollTo(0, list.scrollHeight);
+                vscode.postMessage({ command: "cerebras-inference-save-history", html: list.innerHTML });
                 break;
             case "handleError":
                 document.getElementById("in-progress")?.classList?.add("hidden");
@@ -72,7 +76,7 @@
 
     document.getElementById("clear-button")?.addEventListener("click", () => {
         list.innerHTML = "";
-        vscode.postMessage({ type: "clearChat", });
+        vscode.postMessage({ command: "cerebras-inference-save-history", html: list.innerHTML });
     });
     document.getElementById("ask-button")?.addEventListener("click", submitHandler);
     document.getElementById("question-input")?.addEventListener("keydown", function (e) {
@@ -88,13 +92,10 @@
         });
     });
 
-
-    // Function to highlight all code blocks under a specific element
     function highlightCodeBlocks(element) {
         Prism.highlightAllUnder(element);
     }
 
-    // Observe changes in the DOM to detect new <pre><code> elements
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             mutation.addedNodes.forEach((node) => {
@@ -111,13 +112,11 @@
         });
     });
 
-    // Start observing the document body for changes
     observer.observe(document.body, {
         childList: true,
         subtree: true
     });
 
-    // Initial highlighting of existing code blocks
     highlightCodeBlocks(document.body);
 })();
 
