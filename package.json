@@ -2,7 +2,7 @@
   "name": "cerebras-inference",
   "displayName": "Cerebras Inference",
   "description": "This is instant AI",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "cerebras",
   "repository": "https://github.com/ryuichis/vscode-extension-cerebras-inference",
   "engines": {

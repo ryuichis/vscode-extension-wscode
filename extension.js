@@ -1,20 +1,14 @@
 const vscode = require('vscode');
+const path = require('path');
+const fs = require('fs').promises;
 const Cerebras = require('@cerebras/cerebras_cloud_sdk');
 const { marked } = require('marked');
 
 let cerebrasInferenceWebview;
 let selectedModel = 'llama-3.3-70b';
 
-function extractCodeFromFence(text) {
-    const htmlMatch = text.match(/```html\n([\s\S]*?)\n```/);
-    const md = htmlMatch ? htmlMatch[1].trim() : text;
-    const html = marked(md);
-    return html;
-}
+const historyStorageKey = 'cerebras-inference-history-storage';
 
-/**
- * @param {vscode.ExtensionContext} context
- */
 function activate(context) {
     const askCommandProvider = vscode.commands.registerCommand('cerebras-inference.ask', async function () {
         var apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
@@ -37,7 +31,7 @@ function activate(context) {
     context.subscriptions.push(apiKeyCommandProvider);
 
     const cerebrasInferenceViewProvider = {
-        resolveWebviewView: function (webviewView) {
+        resolveWebviewView: async function (webviewView) {
             cerebrasInferenceWebview = webviewView.webview;
 
             webviewView.webview.options = {
@@ -47,7 +41,7 @@ function activate(context) {
                     vscode.Uri.joinPath(context.extensionUri, 'resources'),
                 ]
             };
-            webviewView.webview.html = getWebviewContent(context, webviewView.webview);
+            webviewView.webview.html = await getWebviewContent(context, webviewView.webview);
 
             webviewView.webview.onDidReceiveMessage(
                 async message => {
@@ -58,14 +52,25 @@ function activate(context) {
                         case 'cerebras-inference-model-selection':
                             selectedModel = message.value;
                             break;
+                        case 'cerebras-inference-save-history':
+                            storeChatToFile(context, message.html);
+                            break;
                     }
                 },
                 undefined,
                 context.subscriptions
             );
+
+            webviewView.onDidChangeVisibility(async () => {
+                if (webviewView.visible) {
+                    webviewView.webview.html = await getWebviewContent(context, webviewView.webview);
+                }
+            });
         }
     };
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider));
+    const cerebrasInferenceWebviewProvider =
+        vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider);
+    context.subscriptions.push(cerebrasInferenceWebviewProvider);
 }
 
 async function getEditorContent() {
@@ -81,6 +86,48 @@ async function getEditorContent() {
         return document.getText(selection);
     } else {
         return document.getText();
+    }
+}
+
+function getWorkspaceIdentifier() {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        throw new Error("No workspace folder is open");
+    }
+    return workspaceFolders[0].uri.fsPath.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+async function getStorageFilePath(context) {
+    const workspaceId = getWorkspaceIdentifier();
+    const storagePath = context.globalStorageUri.fsPath;
+    try {
+        await fs.mkdir(storagePath, { recursive: true });
+    } catch (error) {
+        console.error('Error creating storage directory:', error);
+        return null;
+    }
+    return path.join(storagePath, `${workspaceId}_chat.html`);
+}
+
+async function storeChatToFile(context, chat) {
+    const filePath = await getStorageFilePath(context);
+    if (!filePath) {
+        return;
+    }
+    await fs.writeFile(filePath, chat, 'utf8');
+}
+
+async function retrieveChatFromFile(context) {
+    const workspaceId = getWorkspaceIdentifier();
+    const filePath = await getStorageFilePath(context);
+    if (!filePath) {
+        return null;
+    }
+    try {
+        return await fs.readFile(filePath, 'utf8');
+    } catch (error) {
+        console.error('Error reading chat from file:', error);
+        return null;
     }
 }
 
@@ -123,8 +170,19 @@ async function postQuestion(prompt) {
         const time = chatCompletion.time_info?.completion_time || 0;
         const totalTokens = chatCompletion.usage?.completion_tokens || 1;
         const tokensPerSecond = time > 0 ? totalTokens / time : 0;
-        cerebrasInferenceWebview.postMessage({ type: 'addResponse', value: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+        cerebrasInferenceWebview.postMessage({
+            type: 'addResponse',
+            value: code,
+            tokensPerSecond: Math.floor(tokensPerSecond)
+        });
     }
+}
+
+function extractCodeFromFence(text) {
+    const htmlMatch = text.match(/```html\n([\s\S]*?)\n```/);
+    const md = htmlMatch ? htmlMatch[1].trim() : text;
+    const html = marked(md);
+    return html;
 }
 
 async function setupApiKey() {
@@ -141,8 +199,7 @@ async function setupApiKey() {
     }
 }
 
-function getWebviewContent(context, webview) {
-
+async function getWebviewContent(context, webview) {
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.js'));
     const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.css'));
     const prismJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.js'));
@@ -150,6 +207,7 @@ function getWebviewContent(context, webview) {
     const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
     const lCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cb-main.png'));
     const sCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cerebras-logo-black-cropped.svg'));
+    const historyHtml = await retrieveChatFromFile(context) || "";
 
     const html = `<!DOCTYPE html>
         <html lang="en">
@@ -179,7 +237,7 @@ function getWebviewContent(context, webview) {
                 </div>
             </div>
             <div class="flex flex-col h-screen">
-                <div class="flex-1 overflow-y-auto" id="message-list"></div>
+                <div class="flex-1 overflow-y-auto" id="message-list">${historyHtml}</div>
                 <div id="in-progress" class="p-4 flex items-center hidden">
                     <div style="text-align: center;">
                         <div>Brainstorming...</div>
