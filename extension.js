@@ -1,4 +1,6 @@
 const vscode = require('vscode');
+const path = require('path');
+const fs = require('fs').promises;
 const Cerebras = require('@cerebras/cerebras_cloud_sdk');
 const { marked } = require('marked');
 
@@ -29,7 +31,7 @@ function activate(context) {
     context.subscriptions.push(apiKeyCommandProvider);
 
     const cerebrasInferenceViewProvider = {
-        resolveWebviewView: function (webviewView) {
+        resolveWebviewView: async function (webviewView) {
             cerebrasInferenceWebview = webviewView.webview;
 
             webviewView.webview.options = {
@@ -39,7 +41,7 @@ function activate(context) {
                     vscode.Uri.joinPath(context.extensionUri, 'resources'),
                 ]
             };
-            webviewView.webview.html = getWebviewContent(context, webviewView.webview);
+            webviewView.webview.html = await getWebviewContent(context, webviewView.webview);
 
             webviewView.webview.onDidReceiveMessage(
                 async message => {
@@ -51,7 +53,7 @@ function activate(context) {
                             selectedModel = message.value;
                             break;
                         case 'cerebras-inference-save-history':
-                            context.workspaceState.update(historyStorageKey, message.html);
+                            storeChatToFile(context, message.html);
                             break;
                     }
                 },
@@ -59,9 +61,9 @@ function activate(context) {
                 context.subscriptions
             );
 
-            webviewView.onDidChangeVisibility(() => {
+            webviewView.onDidChangeVisibility(async () => {
                 if (webviewView.visible) {
-                    webviewView.webview.html = getWebviewContent(context, webviewView.webview);
+                    webviewView.webview.html = await getWebviewContent(context, webviewView.webview);
                 }
             });
         }
@@ -84,6 +86,48 @@ async function getEditorContent() {
         return document.getText(selection);
     } else {
         return document.getText();
+    }
+}
+
+function getWorkspaceIdentifier() {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        throw new Error("No workspace folder is open");
+    }
+    return workspaceFolders[0].uri.fsPath.replace(/[^a-zA-Z0-9]/g, '_');
+}
+
+async function getStorageFilePath(context) {
+    const workspaceId = getWorkspaceIdentifier();
+    const storagePath = context.globalStorageUri.fsPath;
+    try {
+        await fs.mkdir(storagePath, { recursive: true });
+    } catch (error) {
+        console.error('Error creating storage directory:', error);
+        return null;
+    }
+    return path.join(storagePath, `${workspaceId}_chat.html`);
+}
+
+async function storeChatToFile(context, chat) {
+    const filePath = await getStorageFilePath(context);
+    if (!filePath) {
+        return;
+    }
+    await fs.writeFile(filePath, chat, 'utf8');
+}
+
+async function retrieveChatFromFile(context) {
+    const workspaceId = getWorkspaceIdentifier();
+    const filePath = await getStorageFilePath(context);
+    if (!filePath) {
+        return null;
+    }
+    try {
+        return await fs.readFile(filePath, 'utf8');
+    } catch (error) {
+        console.error('Error reading chat from file:', error);
+        return null;
     }
 }
 
@@ -155,7 +199,7 @@ async function setupApiKey() {
     }
 }
 
-function getWebviewContent(context, webview) {
+async function getWebviewContent(context, webview) {
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.js'));
     const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.css'));
     const prismJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.js'));
@@ -163,7 +207,7 @@ function getWebviewContent(context, webview) {
     const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
     const lCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cb-main.png'));
     const sCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cerebras-logo-black-cropped.svg'));
-    const historyHtml = context.workspaceState.get(historyStorageKey) || "";
+    const historyHtml = await retrieveChatFromFile(context) || "";
 
     const html = `<!DOCTYPE html>
         <html lang="en">
