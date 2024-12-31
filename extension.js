@@ -5,16 +5,6 @@ const { marked } = require('marked');
 let cerebrasInferenceWebview;
 let selectedModel = 'llama-3.3-70b';
 
-function extractCodeFromFence(text) {
-    const htmlMatch = text.match(/```html\n([\s\S]*?)\n```/);
-    const md = htmlMatch ? htmlMatch[1].trim() : text;
-    const html = marked(md);
-    return html;
-}
-
-/**
- * @param {vscode.ExtensionContext} context
- */
 function activate(context) {
     const askCommandProvider = vscode.commands.registerCommand('cerebras-inference.ask', async function () {
         var apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
@@ -65,7 +55,9 @@ function activate(context) {
             );
         }
     };
-    context.subscriptions.push(vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider));
+    const cerebrasInferenceWebviewProvider =
+        vscode.window.registerWebviewViewProvider('cerebrasInferenceView', cerebrasInferenceViewProvider);
+    context.subscriptions.push(cerebrasInferenceWebviewProvider);
 }
 
 async function getEditorContent() {
@@ -123,8 +115,19 @@ async function postQuestion(prompt) {
         const time = chatCompletion.time_info?.completion_time || 0;
         const totalTokens = chatCompletion.usage?.completion_tokens || 1;
         const tokensPerSecond = time > 0 ? totalTokens / time : 0;
-        cerebrasInferenceWebview.postMessage({ type: 'addResponse', value: code, tokensPerSecond: Math.floor(tokensPerSecond) });
+        cerebrasInferenceWebview.postMessage({
+            type: 'addResponse',
+            value: code,
+            tokensPerSecond: Math.floor(tokensPerSecond)
+        });
     }
+}
+
+function extractCodeFromFence(text) {
+    const htmlMatch = text.match(/```html\n([\s\S]*?)\n```/);
+    const md = htmlMatch ? htmlMatch[1].trim() : text;
+    const html = marked(md);
+    return html;
 }
 
 async function setupApiKey() {
@@ -142,7 +145,6 @@ async function setupApiKey() {
 }
 
 function getWebviewContent(context, webview) {
-
     const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.js'));
     const stylesMainUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'main.css'));
     const prismJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.js'));

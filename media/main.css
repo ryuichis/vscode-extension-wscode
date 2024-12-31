@@ -1,5 +1,3 @@
-/* Derived from https://github.com/barnesoir/chatgpt-vscode-plugin/blob/main/media/main.css */
-
 :root {
     --container-padding: 20px;
     --input-padding-vertical: 6px;
@@ -166,8 +164,14 @@ select {
 }
 
 pre code {
-    display: block; /* Ensure the code block takes up the full width */
-    overflow-x: auto; /* Enable horizontal scrolling */
-    white-space: nowrap; /* Prevent text from wrapping */
-    border-radius: 0.25rem; /* Optional: Add rounded corners */
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    border-radius: 0.25rem;
 }
+
+/*
+ * Derived from https://github.com/barnesoir/chatgpt-vscode-plugin/blob/main/media/main.css
+ * Copyright (c) 2022 Jay Barnes
+ * MIT License
+ */

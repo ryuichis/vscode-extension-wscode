@@ -1,5 +1,3 @@
-// Derived from https://github.com/barnesoir/chatgpt-vscode-plugin/blob/main/media/main.js
-
 (function () {
     const vscode = acquireVsCodeApi();
     const list = document.getElementById("message-list");
@@ -122,3 +120,9 @@
     // Initial highlighting of existing code blocks
     highlightCodeBlocks(document.body);
 })();
+
+/*
+ * Derived from https://github.com/barnesoir/chatgpt-vscode-plugin/blob/main/media/main.js
+ * Copyright (c) 2022 Jay Barnes
+ * MIT License
+ */
