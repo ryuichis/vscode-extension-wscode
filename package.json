@@ -1,39 +1,38 @@
 {
-  "name": "cerebras-inference",
-  "displayName": "Cerebras Inference",
-  "description": "This is instant AI",
-  "version": "0.0.4",
-  "publisher": "cerebras",
-  "repository": "https://github.com/ryuichis/vscode-extension-cerebras-inference",
+  "name": "wscode",
+  "displayName": "WSCode",
+  "description": "Unofficial extension that enables you to chat with Cerebras Inference directly within VSCode",
+  "version": "0.9.5",
+  "publisher": "ryuichiban",
+  "repository": "https://github.com/ryuichis/vscode-extension-wscode",
   "engines": {
     "vscode": "^1.96.0"
   },
   "categories": [
-    "Cerebras",
-    "Inference",
+    "Cerebras Inference",
     "AI",
     "Machine Learning",
     "Chat"
   ],
   "activationEvents": [],
   "main": "./extension.js",
-  "icon": "resources/cb-fav-144.png",
+  "icon": "resources/wscode.png",
   "contributes": {
     "commands": [
       {
-        "command": "cerebras-inference.ask",
-        "title": "Cerebras Inference: Ask"
+        "command": "wscode.ask",
+        "title": "WSCode: Ask Cerebras Inference"
       },
       {
-        "command": "cerebras-inference.setupApiKey",
-        "title": "Cerebras Inference: Setup API Key"
+        "command": "wscode.setupApiKey",
+        "title": "WSCode: Setup API Key for Cerebras Inference"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "Cerebras Inference",
+      "title": "WSCode",
       "properties": {
-        "cerebras-inference.apiKey": {
+        "wscode.apiKey": {
           "type": "string",
           "default": "",
           "description": "API Key for Cerebras Inference"
@@ -43,14 +42,14 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "cerebrasInference",
-          "title": "Cerebras Inference",
-          "icon": "resources/cerebras-logo-black-cropped.svg"
+          "id": "wscodeView",
+          "title": "WSCode",
+          "icon": "resources/wscode.svg"
         }
       ]
     },
     "views": {
-      "cerebrasInference": [
+      "wscodeView": [
         {
           "type": "webview",
           "id": "cerebrasInferenceView",
