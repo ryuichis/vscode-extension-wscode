@@ -28,5 +28,5 @@ jobs:
       - name: Upload VSIX artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cerebras-inference-extension
+          name: wscode-extension
           path: '*.vsix'

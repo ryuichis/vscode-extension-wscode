@@ -1,8 +1,6 @@
-![Cerebras Inference](resources/cb-main.png)
+# WSCode
 
-# Cerebras Inference Extension for Visual Studio Code
-
-This Visual Studio Code extension allows you to chat with Cerebras Inference right within the editor.
+WSCode is an unofficial extension that enables you to chat with Cerebras Inference directly within VSCode.
 
 ## Features
 
@@ -65,3 +63,7 @@ You can author your README using Visual Studio Code.  Here are some useful edito
 * [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
 
 **Enjoy!**
+
+## Disclaimer:
+
+This is NOT an official extension. Cerebras Inference is a trademark of Cerebras Systems Inc.

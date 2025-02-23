@@ -24,7 +24,7 @@
 
                 document.getElementById("in-progress")?.classList?.remove("hidden");
                 list.scrollTo(0, list.scrollHeight);
-                vscode.postMessage({ command: "cerebras-inference-save-history", html: list.innerHTML });
+                vscode.postMessage({ command: "wscode-save-history", html: list.innerHTML });
                 break;
             case "addResponse":
                 document.getElementById("in-progress")?.classList?.add("hidden");
@@ -49,7 +49,7 @@
                     </div>`;
 
                 list.scrollTo(0, list.scrollHeight);
-                vscode.postMessage({ command: "cerebras-inference-save-history", html: list.innerHTML });
+                vscode.postMessage({ command: "wscode-save-history", html: list.innerHTML });
                 break;
             case "handleError":
                 document.getElementById("in-progress")?.classList?.add("hidden");
@@ -66,7 +66,7 @@
 
         if (input.value?.length > 0) {
             vscode.postMessage({
-                command: 'cerebras-inference-ask',
+                command: 'wscode-ask',
                 text: input.value,
             });
 
@@ -76,7 +76,7 @@
 
     document.getElementById("clear-button")?.addEventListener("click", () => {
         list.innerHTML = "";
-        vscode.postMessage({ command: "cerebras-inference-save-history", html: list.innerHTML });
+        vscode.postMessage({ command: "wscode-save-history", html: list.innerHTML });
     });
     document.getElementById("ask-button")?.addEventListener("click", submitHandler);
     document.getElementById("question-input")?.addEventListener("keydown", function (e) {
@@ -87,7 +87,7 @@
     });
     document.getElementById('model-selection-dropdown').addEventListener('change', (event) => {
         vscode.postMessage({
-            command: 'cerebras-inference-model-selection',
+            command: 'wscode-model-selection',
             value: event.target.value
         });
     });

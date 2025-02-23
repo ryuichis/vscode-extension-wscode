@@ -7,11 +7,11 @@ const { marked } = require('marked');
 let cerebrasInferenceWebview;
 let selectedModel = 'llama-3.3-70b';
 
-const historyStorageKey = 'cerebras-inference-history-storage';
+const historyStorageKey = 'wscode-history-storage';
 
 function activate(context) {
-    const askCommandProvider = vscode.commands.registerCommand('cerebras-inference.ask', async function () {
-        var apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
+    const askCommandProvider = vscode.commands.registerCommand('wscode.ask', async function () {
+        var apiKey = vscode.workspace.getConfiguration('wscode').get('apiKey');
         if (!apiKey) {
             apiKey = await setupApiKey();
             if (!apiKey) {
@@ -21,13 +21,13 @@ function activate(context) {
 
         const userInput = await vscode.window.showInputBox({ prompt: "Ask anything..." }) || "";
 
-        await vscode.commands.executeCommand('workbench.view.extension.cerebrasInference');
+        await vscode.commands.executeCommand('workbench.view.extension.wscodeView');
 
         postQuestion(userInput);
     });
     context.subscriptions.push(askCommandProvider);
 
-    const apiKeyCommandProvider = vscode.commands.registerCommand('cerebras-inference.setupApiKey', setupApiKey);
+    const apiKeyCommandProvider = vscode.commands.registerCommand('wscode.setupApiKey', setupApiKey);
     context.subscriptions.push(apiKeyCommandProvider);
 
     const cerebrasInferenceViewProvider = {
@@ -46,13 +46,13 @@ function activate(context) {
             webviewView.webview.onDidReceiveMessage(
                 async message => {
                     switch (message.command) {
-                        case 'cerebras-inference-ask':
+                        case 'wscode-ask':
                             postQuestion(message.text);
                             break;
-                        case 'cerebras-inference-model-selection':
+                        case 'wscode-model-selection':
                             selectedModel = message.value;
                             break;
-                        case 'cerebras-inference-save-history':
+                        case 'wscode-save-history':
                             storeChatToFile(context, message.html);
                             break;
                     }
@@ -92,7 +92,7 @@ async function getEditorContent() {
 function getWorkspaceIdentifier() {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders) {
-        throw new Error("No workspace folder is open");
+        return "default_workspace";
     }
     return workspaceFolders[0].uri.fsPath.replace(/[^a-zA-Z0-9]/g, '_');
 }
@@ -137,9 +137,9 @@ async function postQuestion(prompt) {
         return;
     }
 
-    const apiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
+    const apiKey = vscode.workspace.getConfiguration('wscode').get('apiKey');
     if (!apiKey) {
-        vscode.window.showErrorMessage('API Key not set. Use the "Cerebras Inference: Setup API Key" command to set the API Key.');
+        vscode.window.showErrorMessage('API Key not set. Use the "WSCode: Setup API Key for Cerebras Inference" command to set the API Key.');
         return;
     }
 
@@ -186,14 +186,14 @@ function extractCodeFromFence(text) {
 }
 
 async function setupApiKey() {
-    const currentApiKey = vscode.workspace.getConfiguration('cerebras-inference').get('apiKey');
+    const currentApiKey = vscode.workspace.getConfiguration('wscode').get('apiKey');
     const apiKey = await vscode.window.showInputBox({ value: currentApiKey, prompt: "Enter your API Key for Cerebras Inference" }) || "";
     if (apiKey) {
-        await vscode.workspace.getConfiguration('cerebras-inference').update('apiKey', apiKey, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration('wscode').update('apiKey', apiKey, vscode.ConfigurationTarget.Global);
         vscode.window.showInformationMessage('API Key has been set.');
         return apiKey;
     } else {
-        await vscode.workspace.getConfiguration('cerebras-inference').update('apiKey', "", vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration('wscode').update('apiKey', "", vscode.ConfigurationTarget.Global);
         vscode.window.showErrorMessage('API Key not set.');
         return null;
     }
@@ -205,8 +205,6 @@ async function getWebviewContent(context, webview) {
     const prismJsUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.js'));
     const prismCssUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'prism.css'));
     const tailwindUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'media', 'tailwind.js'));
-    const lCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cb-main.png'));
-    const sCerebrasLogoUri = webview.asWebviewUri(vscode.Uri.joinPath(context.extensionUri, 'resources', 'cerebras-logo-black-cropped.svg'));
     const historyHtml = await retrieveChatFromFile(context) || "";
 
     const html = `<!DOCTYPE html>
@@ -221,10 +219,6 @@ async function getWebviewContent(context, webview) {
         <body class="overflow-hidden">
             <div class="mx-auto flex w-full items-center justify-between mb-6">
                 <div class="flex items-center gap-x-2">
-                    <div class="shrink-0" data-testid="header-logo-xs">
-                        <img alt="Cerebras logo" fetchpriority="high" width="28" height="36" decoding="async" data-nimg="1" class="sm:hidden" src="${sCerebrasLogoUri}" style="color: transparent;">
-                        <img alt="Cerebras logo" fetchpriority="high" width="154" height="36" decoding="async" data-nimg="1" class="max-sm:hidden" src="${lCerebrasLogoUri}" style="color: transparent;">
-                    </div>
                 </div>
 
                 <div class="flex items-center gap-x-2">
