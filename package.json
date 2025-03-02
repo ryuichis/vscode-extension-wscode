@@ -35,6 +35,7 @@
         "wscode.apiKey": {
           "type": "string",
           "default": "",
+          "scope": "machine",
           "description": "API Key for Cerebras Inference"
         }
       }
