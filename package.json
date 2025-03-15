@@ -2,7 +2,7 @@
   "name": "wscode",
   "displayName": "WSCode",
   "description": "Unofficial extension that enables you to chat with Cerebras Inference directly within VSCode",
-  "version": "0.9.6",
+  "version": "0.9.8",
   "publisher": "ryuichiban",
   "repository": "https://github.com/ryuichis/vscode-extension-wscode",
   "engines": {
@@ -16,7 +16,7 @@
   ],
   "activationEvents": [],
   "main": "./extension.js",
-  "icon": "resources/wscode.png",
+  "icon": "resources/wscode-ext-icn.png",
   "contributes": {
     "commands": [
       {
@@ -45,7 +45,7 @@
         {
           "id": "wscodeView",
           "title": "WSCode",
-          "icon": "resources/wscode.svg"
+          "icon": "resources/wscode-view-icn.png"
         }
       ]
     },
