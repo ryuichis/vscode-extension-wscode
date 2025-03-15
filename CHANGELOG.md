@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.8
+
+- Automatically retry without editor context for context_length_exceeded error
+
 ## 0.9.6
 
 - Update extension logo color for better looking under both light and dark themes
