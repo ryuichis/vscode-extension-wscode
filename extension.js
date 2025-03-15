@@ -131,26 +131,13 @@ async function retrieveChatFromFile(context) {
     }
 }
 
-async function postQuestion(prompt) {
-    if (!cerebrasInferenceWebview) {
-        vscode.window.showErrorMessage('Could not find the Cerebras Inference webview.');
-        return;
-    }
-
-    const apiKey = vscode.workspace.getConfiguration('wscode').get('apiKey');
-    if (!apiKey) {
-        vscode.window.showErrorMessage('API Key not set. Use the "WSCode: Setup API Key for Cerebras Inference" command to set the API Key.');
-        return;
-    }
-
+async function callCerebrasApi(apiKey, prompt, editorContent) {
     let messages = [];
-    const editorContent = await getEditorContent();
     if (editorContent) {
         messages.push({ role: 'system', content: `You are an advanced AI coding assistant. Current code for context:\n\`\`\`${editorContent}\`\`\`` });
     }
     messages.push({ role: 'user', content: prompt });
 
-    cerebrasInferenceWebview.postMessage({ type: 'addQuestion', value: prompt });
     const client = new Cerebras({ apiKey: apiKey });
     const chatCompletion = await client.chat.completions
         .create({
@@ -160,7 +147,12 @@ async function postQuestion(prompt) {
         .catch(async (err) => {
             cerebrasInferenceWebview.postMessage({ type: 'handleError' });
             if (err instanceof Cerebras.APIError) {
-                vscode.window.showErrorMessage(`${err.name}: ${err.message}`);
+                if (err.status == 400 && err.error.code === "context_length_exceeded") {
+                    vscode.window.showWarningMessage(`The length of editor content or highlighted area exceeded limit. Trying again without them.`);
+                    callCerebrasApi(apiKey, prompt, null);
+                } else {
+                    vscode.window.showErrorMessage(`${err.name}: ${err.message}`);
+                }
             } else {
                 throw err;
             }
@@ -176,6 +168,24 @@ async function postQuestion(prompt) {
             tokensPerSecond: Math.floor(tokensPerSecond)
         });
     }
+}
+
+async function postQuestion(prompt) {
+    if (!cerebrasInferenceWebview) {
+        vscode.window.showErrorMessage('Could not find the Cerebras Inference webview.');
+        return;
+    }
+
+    const apiKey = vscode.workspace.getConfiguration('wscode').get('apiKey');
+    if (!apiKey) {
+        vscode.window.showErrorMessage('API Key not set. Use the "WSCode: Setup API Key for Cerebras Inference" command to set the API Key.');
+        return;
+    }
+
+    cerebrasInferenceWebview.postMessage({ type: 'addQuestion', value: prompt });
+
+    const editorContent = await getEditorContent();
+    await callCerebrasApi(apiKey, prompt, editorContent);
 }
 
 function extractCodeFromFence(text) {
