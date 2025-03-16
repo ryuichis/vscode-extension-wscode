@@ -1,6 +1,6 @@
 {
   "name": "wscode",
-  "displayName": "WSCode",
+  "displayName": "WSCode - Instant Inference",
   "description": "Unofficial extension that enables you to chat with Cerebras Inference directly within VSCode",
   "version": "0.9.8",
   "publisher": "sairyuichi",
