@@ -5,7 +5,7 @@ const Cerebras = require('@cerebras/cerebras_cloud_sdk');
 const { marked } = require('marked');
 
 let cerebrasInferenceWebview;
-let selectedModel = 'llama-3.3-70b';
+let selectedModel = 'llama-4-scout-17b-16e-instruct';
 
 const historyStorageKey = 'wscode-history-storage';
 
@@ -254,6 +254,7 @@ async function getWebviewContent(context, webview) {
                         <select id="model-selection-dropdown" class="h-9 text-md-b px-3 py-0 rounded-md shadow outline-none items-center focus:ring-0 bg-neutral text-neutral-95 border border-neutral-15 hover:bg-interactive-10 focus:border-2 focus:border-interactive-50 active:border-neutral-50 active:shadow-none focus:active:bg-neutral focus:active:border-neutral-50">
                             <option value="llama3.1-8b">Llama 3.1 8B</option>
                             <option value="llama-3.3-70b" selected>Llama 3.3 70B</option>
+                            <option value="llama-4-scout-17b-16e-instruct" selected>Llama 4 Scout</option>
                         </select>
                         <button id="ask-button" class="h-9 text-md-b px-3 py-0 rounded-md shadow outline-none items-center focus:ring-0 bg-neutral text-neutral-95 border border-neutral-15 hover:bg-interactive-10 focus:border-2 focus:border-interactive-50 active:border-neutral-50 active:shadow-none focus:active:bg-neutral focus:active:border-neutral-50 focus:px-[15px]"><span class=""><svg class="w-4 h-4 stroke-[1.5625px]" viewBox="0 0 20 20" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="send icon"><path d="M2.5 2.5L5 10L2.5 17.5L18.3333 10L2.5 2.5Z" stroke-linecap="round" stroke-linejoin="round"></path><path d="M5 10H18.3333" stroke-linecap="round" stroke-linejoin="round"></path></svg></span></button>
                     </div>
