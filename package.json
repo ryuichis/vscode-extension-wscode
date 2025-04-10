@@ -2,7 +2,7 @@
   "name": "wscode",
   "displayName": "WSCode - Instant Inference",
   "description": "Unofficial extension that enables you to chat with Cerebras Inference directly within VSCode",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "publisher": "sairyuichi",
   "repository": "https://github.com/ryuichis/vscode-extension-wscode",
   "engines": {
