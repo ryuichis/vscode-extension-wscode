@@ -7,7 +7,7 @@ WSCode is an unofficial extension that enables you to chat with Cerebras Inferen
 ![2538 T/s](resources/2538tps.png)
 
 - Directly chat with Cerebras Inference
-- Switch between Llama 3.1 8B and Llama 3.3 70B models
+- Switch among Llama 3.1 8B, Llama 3.3 70B, and Llama 4 Scout models
 - Provide currently open file or selected text to the context window
 
 ## Requirements

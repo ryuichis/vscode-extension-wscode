@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.9.9
+
+- Support Llama 4 Scout
+
 ## 0.9.8
 
 - Automatically retry without editor context for context_length_exceeded error
