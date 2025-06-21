@@ -1,3 +1,5 @@
+## Now that [Cline](https://cline.bot/) supports [Cerebras Inference](https://github.com/cline/cline/pull/3810), this project is no longer being maintained.
+
 # WSCode
 
 WSCode is an unofficial extension that enables you to chat with Cerebras Inference directly within VSCode.
